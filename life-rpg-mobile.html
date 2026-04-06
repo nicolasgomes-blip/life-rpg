@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Life RPG">
+<meta name="theme-color" content="#06090d">
+<meta name="description" content="Sistema de evolução pessoal gamificado — 100 níveis, 5 pilares, 100 conquistas">
+<meta property="og:title" content="Life RPG — Evolução Pessoal">
+<meta property="og:description" content="Transforme sua vida num RPG. Ganhe XP, suba de nível, desbloqueie conquistas.">
+<meta property="og:type" content="website">
+<title>Life RPG ⚡</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Syne:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#06090d;--bg2:#0a0f16;--card:#0f1a26;--card2:#131f2e;
+  --border:#1a2e42;--border2:#264565;
+  --neon:#00d4ff;--neon2:#00ff88;--neon3:#ff6b35;--neon4:#c77dff;--neon5:#ffd60a;
+  --text:#ddeeff;--muted:#3d6a8a;--muted2:#1e3d55;
+  --font-game:'Orbitron',monospace;--font-body:'Syne',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --c-fisico:#00ff88;--c-financeiro:#ffd60a;--c-pessoal:#c77dff;--c-profissional:#00d4ff;--c-relacionamentos:#ff6b35;
+  --r-comum:#4a7a9b;--r-incomum:#00ff88;--r-raro:#00d4ff;--r-epico:#c77dff;--r-lendario:#ffd60a;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{color:var(--text);font-family:var(--font-body);position:fixed;width:100%;overscroll-behavior:none;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.035) 3px,rgba(0,0,0,0.035) 4px);pointer-events:none;z-index:500;}
+
+/* ── APP SHELL ── */
+.app{display:flex;flex-direction:column;height:100%;height:100dvh;}
+
+/* ── HEADER ── */
+.hdr{
+  flex-shrink:0;
+  padding:calc(var(--safe-top) + 12px) 16px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(6,9,13,0.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  z-index:100;
+}
+.hdr-left{display:flex;align-items:center;gap:10px;}
+.logo-ico{width:36px;height:36px;background:linear-gradient(135deg,var(--neon),var(--neon2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 0 16px rgba(0,212,255,.35);flex-shrink:0;}
+.logo-txt{font-family:var(--font-game);font-size:16px;font-weight:900;letter-spacing:3px;color:var(--neon);text-shadow:0 0 16px rgba(0,212,255,.4);}
+.logo-sub{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--font-mono);}
+.rank-chip{font-family:var(--font-game);font-size:9px;letter-spacing:1.5px;padding:4px 10px;border-radius:4px;border:1px solid;text-transform:uppercase;transition:all .3s;white-space:nowrap;}
+
+/* ── LEVEL BAR ── */
+.lvl-strip{
+  flex-shrink:0;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  padding:10px 16px;
+  display:flex;align-items:center;gap:12px;
+}
+.lvl-n{font-family:var(--font-game);font-size:28px;font-weight:900;color:var(--neon);text-shadow:0 0 16px rgba(0,212,255,.5);line-height:1;min-width:36px;}
+.lvl-mid{flex:1;}
+.lvl-title-txt{font-family:var(--font-mono);font-size:10px;color:var(--text);letter-spacing:1px;margin-bottom:5px;}
+.lvl-track{height:7px;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden;}
+.lvl-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--neon2),var(--neon));box-shadow:0 0 8px rgba(0,212,255,.4);transition:width .8s cubic-bezier(.4,0,.2,1);}
+.lvl-xp-txt{font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-top:4px;}
+.lvl-total{text-align:right;}
+.lvl-total-val{font-family:var(--font-game);font-size:13px;font-weight:700;color:var(--neon);line-height:1;}
+.lvl-total-lbl{font-family:var(--font-mono);font-size:8px;color:var(--muted);margin-top:2px;}
+
+/* ── SCROLLABLE CONTENT ── */
+.content{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  padding-bottom:calc(var(--safe-bot) + 72px);
+}
+.content::-webkit-scrollbar{display:none;}
+
+/* ── BOTTOM NAV ── */
+.bnav{
+  flex-shrink:0;
+  position:fixed;bottom:0;left:0;right:0;
+  height:calc(56px + var(--safe-bot));
+  padding-bottom:var(--safe-bot);
+  background:rgba(6,9,13,0.97);
+  border-top:1px solid var(--border);
+  display:flex;align-items:stretch;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  z-index:200;
+}
+.bnav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:none;border:none;cursor:pointer;padding:4px 0;
+  color:var(--muted);transition:color .15s;
+  font-family:var(--font-game);font-size:7px;letter-spacing:1px;text-transform:uppercase;
+  position:relative;
+}
+.bnav-btn.active{color:var(--neon);}
+.bnav-btn.active::before{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--neon);border-radius:0 0 2px 2px;box-shadow:0 0 8px var(--neon);}
+.bnav-ico{font-size:20px;line-height:1;}
+.bnav-btn.fab{position:relative;}
+.bnav-btn.fab .bnav-ico{
+  width:46px;height:46px;background:linear-gradient(135deg,var(--neon),var(--neon2));
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-size:22px;box-shadow:0 0 20px rgba(0,212,255,.4);
+  transition:transform .15s;
+}
+.bnav-btn.fab:active .bnav-ico{transform:scale(.93);}
+.bnav-btn.fab.active::before{display:none;}
+
+/* ── VIEWS ── */
+.view{display:none;padding:14px 14px 0;}
+.view.active{display:block;animation:fadeUp .25s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── STAT STRIP ── */
+.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.sstat{background:var(--card);padding:10px 8px;text-align:center;}
+.sstat-lbl{font-family:var(--font-mono);font-size:8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;}
+.sstat-val{font-family:var(--font-game);font-size:16px;font-weight:700;line-height:1;}
+
+/* ── SECTION TITLE ── */
+.stitle{font-family:var(--font-game);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;padding:0 2px;}
+.stitle::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── AÇÃO ITEMS ── */
+.alist{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.aitem{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:12px 14px;display:flex;align-items:center;gap:11px;
+  transition:opacity .2s,border-color .15s;
+  touch-action:manipulation;
+}
+.aitem.done{opacity:.4;}
+.aitem:active{border-color:var(--border2);}
+.a-bar{width:3px;height:32px;border-radius:2px;flex-shrink:0;}
+.a-info{flex:1;min-width:0;}
+.a-nome{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.a-meta{font-family:var(--font-mono);font-size:10px;color:var(--muted);}
+.a-pts{font-family:var(--font-game);font-size:15px;font-weight:700;flex-shrink:0;}
+.a-check{
+  width:38px;height:38px;border-radius:10px;border:1.5px solid var(--border2);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:16px;
+  transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  touch-action:manipulation;
+}
+.a-check.done{background:var(--neon2);border-color:var(--neon2);color:var(--bg);font-size:14px;}
+.empty{text-align:center;padding:32px 16px;color:var(--muted);font-family:var(--font-mono);font-size:11px;border:1px dashed var(--border);border-radius:12px;line-height:2;}
+
+/* ── ADD SHEET (bottom sheet) ── */
+.sheet-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.sheet-overlay.open{opacity:1;pointer-events:all;}
+.sheet{
+  position:fixed;bottom:0;left:0;right:0;z-index:301;
+  background:var(--bg2);border-top:1px solid var(--border2);
+  border-radius:20px 20px 0 0;
+  padding:0 0 calc(var(--safe-bot) + 12px);
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  max-height:90dvh;overflow-y:auto;
+}
+.sheet.open{transform:translateY(0);}
+.sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 18px;}
+.sheet-title{font-family:var(--font-game);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--neon);padding:0 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.sheet-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;line-height:1;}
+.sheet-body{padding:0 18px;}
+.fg{margin-bottom:13px;}
+.fg label{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.fg input,.fg select{
+  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-family:var(--font-body);font-size:16px;padding:12px 14px;
+  outline:none;-webkit-appearance:none;transition:border-color .2s;
+}
+.fg input:focus,.fg select:focus{border-color:var(--neon);}
+.fg select option{background:var(--bg);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ai-hint{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:10px 13px;font-family:var(--font-mono);font-size:11px;color:var(--neon);margin-bottom:13px;display:none;line-height:1.6;}
+.ai-hint.show{display:block;}
+.xp-prev{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);border-radius:10px;padding:10px 13px;font-family:var(--font-mono);font-size:12px;color:var(--neon2);margin-bottom:13px;display:none;}
+.xp-prev.show{display:block;}
+.btn-p{
+  width:100%;background:linear-gradient(135deg,var(--neon),rgba(0,212,255,.7));
+  border:none;border-radius:12px;color:var(--bg);font-family:var(--font-game);
+  font-size:12px;font-weight:700;letter-spacing:2px;padding:14px;cursor:pointer;
+  transition:opacity .15s,transform .1s;text-transform:uppercase;margin-bottom:8px;
+  touch-action:manipulation;
+}
+.btn-p:active{transform:scale(.97);}
+.btn-s{
+  width:100%;background:transparent;border:1px solid var(--border2);border-radius:12px;
+  color:var(--text);font-family:var(--font-game);font-size:10px;letter-spacing:2px;
+  padding:12px;cursor:pointer;transition:all .15s;text-transform:uppercase;
+  touch-action:manipulation;
+}
+.btn-s:active{background:var(--card2);}
+
+/* ── PILARES ── */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.pcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;position:relative;overflow:hidden;}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--pc);box-shadow:0 0 8px var(--pc);}
+.pc-ico{font-size:16px;margin-bottom:5px;}
+.pc-name{font-family:var(--font-mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.pc-xp{font-family:var(--font-game);font-size:20px;font-weight:700;color:var(--pc);text-shadow:0 0 8px var(--pc);line-height:1;margin-bottom:1px;}
+.pc-lvl{font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-bottom:7px;}
+.mini-bar{height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-bottom:3px;}
+.mini-fill{height:100%;border-radius:2px;transition:width .8s ease;}
+.mini-next{font-family:var(--font-mono);font-size:8px;color:var(--muted2);}
+.mult-tag{display:inline-block;font-family:var(--font-mono);font-size:7px;padding:2px 5px;border-radius:3px;margin-top:4px;letter-spacing:.5px;}
+
+/* RADAR */
+.radar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.rlbl{font-size:11px;color:var(--muted);width:85px;flex-shrink:0;}
+.rbar{flex:1;height:7px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;}
+.rfill{height:100%;border-radius:3px;transition:width .8s ease;}
+.rval{font-family:var(--font-mono);font-size:10px;width:50px;text-align:right;flex-shrink:0;}
+
+/* WEEKLY */
+.wbars-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;}
+.wlbl{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.bars{display:flex;align-items:flex-end;gap:6px;height:70px;}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;}
+.bbar{width:100%;border-radius:3px 3px 0 0;min-height:3px;background:linear-gradient(180deg,var(--neon2),rgba(0,255,136,.2));transition:height .5s ease;}
+.blbl{font-family:var(--font-mono);font-size:8px;color:var(--muted);}
+.bval{font-family:var(--font-mono);font-size:8px;color:var(--neon2);}
+
+/* STREAK */
+.streak-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.s-fire{font-size:32px;}
+.s-num{font-family:var(--font-game);font-size:42px;font-weight:900;color:var(--neon3);text-shadow:0 0 16px rgba(255,107,53,.4);line-height:1;}
+.s-info{}
+.s-lbl{font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;}
+
+/* LEVEL MAP */
+.ltier-label{font-family:var(--font-mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;padding:0 2px;}
+.lgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-bottom:8px;}
+.lnode{
+  aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-game);font-size:8px;font-weight:700;
+  border:1px solid var(--border);color:var(--muted2);
+  cursor:pointer;transition:all .15s;position:relative;
+  touch-action:manipulation;
+}
+.lnode:active{transform:scale(.9);}
+.lnode.reached{border-color:var(--border2);color:var(--text);}
+.lnode.current{background:rgba(0,212,255,.12);border-color:var(--neon);color:var(--neon);box-shadow:0 0 8px rgba(0,212,255,.2);}
+.lnode.mile{border-style:dashed;}
+.lnode.mile.reached{border-style:solid;}
+.mile-dot{position:absolute;top:1px;right:1px;width:3px;height:3px;border-radius:50%;background:var(--r-lendario);}
+.lvl-detail-card{background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:14px;margin-bottom:10px;display:none;}
+.lvl-detail-card.show{display:block;}
+
+/* CALENDAR */
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cal-nav{background:var(--card);border:1px solid var(--border);border-radius:9px;width:38px;height:38px;color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;}
+.cal-nav:active{background:var(--card2);}
+.cal-mlbl{font-family:var(--font-game);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--neon);}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:12px;}
+.cdh{font-family:var(--font-mono);font-size:8px;text-align:center;color:var(--muted);text-transform:uppercase;padding:5px 0;}
+.cd{aspect-ratio:1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--muted);position:relative;gap:1px;touch-action:manipulation;}
+.cd:active{background:var(--card2);}
+.cd.today{border:1px solid var(--neon);color:var(--neon);}
+.cd.hasa{color:var(--text);}
+.cd.hasa .cdots{display:flex;}
+.cdots{display:none;gap:2px;position:absolute;bottom:2px;}
+.cdot{width:3px;height:3px;border-radius:50%;}
+.cd.othm{opacity:.15;}
+.cd.sel{background:rgba(0,212,255,.08);border:1px solid var(--neon);}
+.ddetail{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;display:none;}
+.ddetail.show{display:block;}
+.ddt{font-family:var(--font-game);font-size:10px;letter-spacing:1.5px;color:var(--neon);margin-bottom:10px;}
+.dact{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.dact:last-child{border-bottom:none;}
+
+/* ACHIEVEMENTS */
+.ach-prog-wrap{margin-bottom:12px;}
+.ach-prog-txt{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-bottom:6px;}
+.ach-prog-bar{height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;}
+.ach-prog-fill{height:100%;background:linear-gradient(90deg,var(--neon),var(--neon2));border-radius:2px;transition:width .6s ease;}
+.ach-filters{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
+.ach-filters::-webkit-scrollbar{display:none;}
+.af{font-family:var(--font-mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0;touch-action:manipulation;}
+.af.active{color:var(--text);border-color:var(--border2);background:var(--card2);}
+.af.fc.active{border-color:var(--r-comum);color:var(--r-comum);}
+.af.fi.active{border-color:var(--r-incomum);color:var(--r-incomum);}
+.af.fr.active{border-color:var(--r-raro);color:var(--r-raro);}
+.af.fe.active{border-color:var(--r-epico);color:var(--r-epico);}
+.af.fl.active{border-color:var(--r-lendario);color:var(--r-lendario);}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.acard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 10px;text-align:center;position:relative;overflow:hidden;transition:border-color .2s;}
+.acard.unlocked{border-color:var(--rc);}
+.acard.unlocked::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--rc);box-shadow:0 0 6px var(--rc);}
+.acard.locked{opacity:.28;filter:grayscale(.9);}
+.a-ico2{font-size:24px;margin-bottom:6px;display:block;}
+.a-name2{font-family:var(--font-game);font-size:9px;font-weight:700;color:var(--text);margin-bottom:3px;letter-spacing:.5px;line-height:1.3;}
+.a-desc2{font-size:9px;color:var(--muted);line-height:1.4;margin-bottom:6px;}
+.a-rar{display:inline-block;font-family:var(--font-mono);font-size:7px;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:1px;}
+.a-rar.comum{background:rgba(74,122,155,.15);color:var(--r-comum);}
+.a-rar.incomum{background:rgba(0,255,136,.1);color:var(--r-incomum);}
+.a-rar.raro{background:rgba(0,212,255,.1);color:var(--r-raro);}
+.a-rar.epico{background:rgba(199,125,255,.12);color:var(--r-epico);}
+.a-rar.lendario{background:rgba(255,214,10,.1);color:var(--r-lendario);}
+.a-dt{font-family:var(--font-mono);font-size:7px;color:var(--muted2);margin-top:3px;}
+
+/* ANALISE */
+.analise-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.analise-btn{background:linear-gradient(135deg,var(--neon4),rgba(199,125,255,.6));border:none;border-radius:10px;color:var(--bg);font-family:var(--font-game);font-size:10px;font-weight:700;letter-spacing:1.5px;padding:10px 18px;cursor:pointer;text-transform:uppercase;touch-action:manipulation;}
+.analise-btn:active{opacity:.8;}
+.ac2{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;margin-bottom:10px;}
+.ac2-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ai-bdg{background:rgba(199,125,255,.15);color:var(--neon4);padding:2px 6px;border-radius:3px;font-size:7px;letter-spacing:1px;}
+.atxt{font-size:13px;line-height:1.85;color:var(--text);}
+.atxt p{margin-bottom:10px;}.atxt p:last-child{margin-bottom:0;}
+.atxt strong{color:var(--neon);}
+.aload{display:flex;align-items:center;gap:10px;color:var(--neon4);font-family:var(--font-mono);font-size:11px;padding:12px;}
+.spin{width:15px;height:15px;border:2px solid rgba(199,125,255,.2);border-top-color:var(--neon4);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.pulse{animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* SWIPE-TO-DELETE hint */
+.swipe-hint{display:flex;align-items:center;justify-content:flex-end;padding:4px 14px;margin-top:-4px;margin-bottom:8px;}
+.sh-txt{font-family:var(--font-mono);font-size:9px;color:var(--muted2);letter-spacing:1px;}
+
+/* TOAST */
+.toast{
+  position:fixed;top:calc(var(--safe-top) + 88px);left:12px;right:12px;
+  background:var(--card2);border:1px solid var(--border2);border-radius:14px;
+  padding:13px 16px;display:flex;align-items:flex-start;gap:11px;
+  z-index:900;max-width:420px;margin:0 auto;
+  transform:translateY(-120%);opacity:0;
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;
+  box-shadow:0 4px 24px rgba(0,0,0,.6);
+}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ach{border-color:var(--r-lendario);box-shadow:0 4px 24px rgba(255,214,10,.2);}
+.toast.lvl{border-color:var(--neon);box-shadow:0 4px 24px rgba(0,212,255,.25);}
+.t-ico{font-size:22px;flex-shrink:0;margin-top:1px;}
+.t-ttl{font-family:var(--font-game);font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.t-bdy{font-size:11px;color:var(--muted);line-height:1.4;}
+
+/* INSTALL BANNER */
+.install-banner{
+  background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(0,255,136,.06));
+  border:1px solid rgba(0,212,255,.2);border-radius:12px;
+  padding:12px 14px;margin-bottom:14px;
+  display:flex;align-items:center;gap:12px;
+}
+.install-txt{flex:1;font-size:12px;color:var(--text);line-height:1.5;}
+.install-txt strong{color:var(--neon);font-family:var(--font-game);font-size:10px;letter-spacing:1px;}
+.install-btn{background:var(--neon);color:var(--bg);border:none;border-radius:8px;font-family:var(--font-game);font-size:9px;letter-spacing:1px;padding:8px 12px;cursor:pointer;white-space:nowrap;touch-action:manipulation;}
+.install-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;padding:0;}
+
+/* SCROLLBAR none for mobile */
+*::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="logo-ico">⚡</div>
+      <div><div class="logo-txt">LIFE RPG</div><div class="logo-sub">Evolução Pessoal</div></div>
+    </div>
+    <div class="rank-chip" id="rank-chip">—</div>
+  </div>
+
+  <!-- LEVEL STRIP -->
+  <div class="lvl-strip">
+    <div class="lvl-n" id="lvl-n">1</div>
+    <div class="lvl-mid">
+      <div class="lvl-title-txt" id="lvl-title">Recruta</div>
+      <div class="lvl-track"><div class="lvl-fill" id="lvl-fill" style="width:0%"></div></div>
+      <div class="lvl-xp-txt" id="lvl-xp-txt">0 / 120 XP</div>
+    </div>
+    <div class="lvl-total">
+      <div class="lvl-total-val" id="lvl-total-val">0 XP</div>
+      <div class="lvl-total-lbl">total</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content">
+
+    <!-- VIEW: HOJE -->
+    <div class="view active" id="view-hoje">
+      <div style="padding-top:14px;"></div>
+      <div id="install-wrap"></div>
+      <div class="stat-strip">
+        <div class="sstat"><div class="sstat-lbl">Hoje</div><div class="sstat-val" id="b-hoje" style="color:var(--neon2)">0/0</div></div>
+        <div class="sstat"><div class="sstat-lbl">Streak</div><div class="sstat-val" id="b-streak" style="color:var(--neon3)">0🔥</div></div>
+        <div class="sstat"><div class="sstat-lbl">Mês</div><div class="sstat-val" id="b-mes" style="color:var(--neon4)">0 XP</div></div>
+        <div class="sstat"><div class="sstat-lbl">Troféus</div><div class="sstat-val" id="b-ach" style="color:var(--neon5)">0/100</div></div>
+      </div>
+      <div class="stitle">Ações de hoje</div>
+      <div class="alist" id="alist"></div>
+      <div style="height:10px;"></div>
+    </div>
+
+    <!-- VIEW: PILARES -->
+    <div class="view" id="view-pilares">
+      <div style="padding-top:14px;"></div>
+      <div class="stitle">XP por pilar</div>
+      <div class="pgrid" id="pgrid"></div>
+      <div class="stitle">Distribuição</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;" id="pradar"></div>
+      <div class="stitle">Últimos 7 dias</div>
+      <div class="wbars-card"><div class="wlbl" style="display:none"></div><div class="bars" id="wbars"></div></div>
+      <div class="streak-card"><div class="s-fire">🔥</div><div class="s-num" id="s-big">0</div><div class="s-info"><div style="font-family:var(--font-game);font-size:13px;color:var(--text);">Dias seguidos</div><div class="s-lbl">streak atual</div></div></div>
+    </div>
+
+    <!-- VIEW: NÍVEIS -->
+    <div class="view" id="view-niveis">
+      <div style="padding-top:14px;"></div>
+      <div class="stitle">Mapa de 100 níveis</div>
+      <div id="ltree-wrap"></div>
+      <div class="lvl-detail-card" id="lvl-detail-card"></div>
+      <div class="stitle">Marcos XP</div>
+      <div id="xp-milestones" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;"></div>
+    </div>
+
+    <!-- VIEW: AGENDA -->
+    <div class="view" id="view-agenda">
+      <div style="padding-top:14px;"></div>
+      <div class="cal-hdr">
+        <button class="cal-nav" onclick="chMon(-1)">‹</button>
+        <div class="cal-mlbl" id="cal-lbl"></div>
+        <button class="cal-nav" onclick="chMon(1)">›</button>
+      </div>
+      <div class="cgrid" id="cal-grid"></div>
+      <div class="ddetail" id="ddetail"></div>
+    </div>
+
+    <!-- VIEW: CONQUISTAS -->
+    <div class="view" id="view-conquistas">
+      <div style="padding-top:14px;"></div>
+      <div class="ach-prog-wrap">
+        <div class="ach-prog-txt" id="ach-prog-txt">0 / 100 desbloqueadas</div>
+        <div class="ach-prog-bar"><div class="ach-prog-fill" id="ach-bar" style="width:0%"></div></div>
+      </div>
+      <div class="ach-filters">
+        <button class="af active" onclick="fAch('all',this)">Todos</button>
+        <button class="af fc" onclick="fAch('Comum',this)">Comum</button>
+        <button class="af fi" onclick="fAch('Incomum',this)">Incomum</button>
+        <button class="af fr" onclick="fAch('Raro',this)">Raro</button>
+        <button class="af fe" onclick="fAch('Épico',this)">Épico</button>
+        <button class="af fl" onclick="fAch('Lendário',this)">Lendário</button>
+        <button class="af" onclick="fAch('unlocked',this)">✓ Meus</button>
+      </div>
+      <div class="agrid" id="agrid"></div>
+      <div style="height:10px;"></div>
+    </div>
+
+    <!-- VIEW: ANÁLISE -->
+    <div class="view" id="view-analise">
+      <div style="padding-top:14px;"></div>
+      <div class="analise-hdr">
+        <div class="stitle" style="margin:0;flex:1;">Análise IA</div>
+        <button class="analise-btn" onclick="gerarAnalise()">🤖 Gerar</button>
+      </div>
+      <div id="analise-out">
+        <div class="ac2" style="border-color:rgba(199,125,255,.2);">
+          <div class="ac2-lbl"><span class="ai-bdg">AI</span> Aguardando</div>
+          <div style="color:var(--muted);font-size:13px;line-height:1.85;font-family:var(--font-mono);">Toque em <strong style="color:var(--neon4)">Gerar</strong> para receber análise completa do seu mês: pontos fortes, o que melhorar e próximos passos.</div>
+        </div>
+      </div>
+      <div style="height:10px;"></div>
+    </div>
+
+  </div><!-- end content -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bnav">
+    <button class="bnav-btn active" id="bnav-hoje" onclick="sw('hoje',this)">
+      <div class="bnav-ico">⚡</div><span>Hoje</span>
+    </button>
+    <button class="bnav-btn" id="bnav-pilares" onclick="sw('pilares',this)">
+      <div class="bnav-ico">🧬</div><span>Pilares</span>
+    </button>
+    <button class="bnav-btn fab" id="bnav-add" onclick="openSheet()">
+      <div class="bnav-ico">＋</div>
+    </button>
+    <button class="bnav-btn" id="bnav-conquistas" onclick="sw('conquistas',this)">
+      <div class="bnav-ico">🏆</div><span>Troféus</span>
+    </button>
+    <button class="bnav-btn" id="bnav-analise" onclick="sw('analise',this)">
+      <div class="bnav-ico">🤖</div><span>IA</span>
+    </button>
+  </div>
+
+</div><!-- end app -->
+
+<!-- ADD SHEET -->
+<div class="sheet-overlay" id="overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">
+    <span>⚡ Nova Ação</span>
+    <button class="sheet-close" onclick="closeSheet()">×</button>
+  </div>
+  <div class="sheet-body">
+    <div class="fg"><label>Nome da ação</label><input type="text" id="inp-n" placeholder="Ex: Musculação 1h" oninput="onNomeInput()" autocomplete="off"/></div>
+    <div class="ai-hint" id="ai-hint"></div>
+    <div class="fg"><label>Pilar</label>
+      <select id="inp-p" onchange="updatePreview()">
+        <option value="auto">🤖 Auto — IA classifica</option>
+        <option value="fisico">💪 Físico ×1.40</option>
+        <option value="financeiro">💰 Financeiro ×1.60</option>
+        <option value="pessoal">🧠 Pessoal ×1.00</option>
+        <option value="profissional">🎓 Profissional ×1.20</option>
+        <option value="relacionamentos">❤️ Relacionamentos ×0.70</option>
+      </select>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Duração (min)</label><input type="number" id="inp-d" placeholder="30" min="1" inputmode="numeric" oninput="updatePreview()"/></div>
+      <div class="fg"><label>XP manual</label><input type="number" id="inp-x" placeholder="Auto" min="1" inputmode="numeric" oninput="updatePreview()"/></div>
+    </div>
+    <div class="xp-prev" id="xp-prev"></div>
+    <div class="fg"><label>Repetição</label>
+      <select id="inp-r">
+        <option value="unica">Única vez</option>
+        <option value="diario">🔄 Diário</option>
+        <option value="semanal">📅 Semanal</option>
+      </select>
+    </div>
+    <button class="btn-p" onclick="addAcao()">+ ADICIONAR AÇÃO</button>
+    <button class="btn-s" onclick="addAcaoIA()">🤖 CLASSIFICAR COM IA</button>
+    <div style="height:8px;"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="t-ico" id="t-i">✅</div>
+  <div><div class="t-ttl" id="t-t"></div><div class="t-bdy" id="t-b"></div></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG: PESOS E NÍVEIS
+// ══════════════════════════════════════════
+const MULT={fisico:1.40,financeiro:1.60,pessoal:1.00,profissional:1.20,relacionamentos:0.70};
+
+const PILARES={
+  fisico:         {name:'Físico',          icon:'💪',color:'var(--c-fisico)'},
+  financeiro:     {name:'Saúde Financeira', icon:'💰',color:'var(--c-financeiro)'},
+  pessoal:        {name:'Dev. Pessoal',     icon:'🧠',color:'var(--c-pessoal)'},
+  profissional:   {name:'Dev. Profissional',icon:'🎓',color:'var(--c-profissional)'},
+  relacionamentos:{name:'Relacionamentos',  icon:'❤️',color:'var(--c-relacionamentos)'},
+};
+
+// Curva exponencial: lv10≈5k, lv25≈25k, lv50≈85k, lv75≈175k, lv100≈310k
+function xpForLevel(n){return n<=1?0:Math.round(80*Math.pow(n-1,1.85));}
+function getLvl(xp){for(let n=100;n>=1;n--)if(xp>=xpForLevel(n))return n;return 1;}
+
+const LVL_TITLES={
+  1:'Recruta',2:'Aprendiz',3:'Iniciante',4:'Novato',5:'Curioso',6:'Desperto',7:'Buscador',8:'Comprometido',9:'Determinado',10:'Forjado',
+  11:'Guerreiro',12:'Lutador',13:'Resistente',14:'Perseverante',15:'Resiliente',16:'Tenaz',17:'Incansável',18:'Disciplinado',19:'Focado',20:'Calibrado',
+  21:'Explorador',22:'Desbravador',23:'Aventureiro',24:'Desafiador',25:'Visionário',26:'Estrategista',27:'Calculado',28:'Preciso',29:'Metódico',30:'Sistêmico',
+  31:'Especialista',32:'Competente',33:'Habilidoso',34:'Talentoso',35:'Proficiente',36:'Dominante',37:'Experiente',38:'Conhecedor',39:'Mestre Aprendiz',40:'Elevado',
+  41:'Campeão',42:'Vencedor',43:'Conquistador',44:'Dominador',45:'Invicto',46:'Imparável',47:'Imbatível',48:'Supremo',49:'Absoluto',50:'Semi-Lenda',
+  51:'Elite',52:'Nobre',53:'Distinto',54:'Excelente',55:'Excepcional',56:'Extraordinário',57:'Magistral',58:'Notável',59:'Prodigioso',60:'Transcendente',
+  61:'Mestre',62:'Sábio',63:'Iluminado',64:'Ascendido',65:'Evoluído',66:'Refinado',67:'Aperfeiçoado',68:'Otimizado',69:'Calibrado+',70:'Arquiteto',
+  71:'Épico',72:'Místico',73:'Lendário',74:'Mítico',75:'Ancestral',76:'Primordial',77:'Eterno',78:'Imortal',79:'Celestial',80:'Divino',
+  81:'Ascendido',82:'Transcendido',83:'Iluminado+',84:'Desperto+',85:'Unificado',86:'Integrado',87:'Completo',88:'Perfeito',89:'Absoluto+',90:'Singularidade',
+  91:'Lenda',92:'Grande Lenda',93:'Ícone',94:'Símbolo',95:'Herói',96:'Semideus',97:'Deus',98:'Além dos Deuses',99:'O Único',100:'LIFE MASTER',
+};
+const TIER_NAMES=['Recruta','Guerreiro','Explorador','Especialista','Campeão','Elite','Mestre','Épico','Ascendido','Lenda'];
+const TIER_COLORS=['#3d6a8a','#00ff88','#44ccaa','#00d4ff','#66bbff','#c77dff','#aa88ff','#ff99cc','#ffcc55','#ffd60a'];
+
+const RANKS=[
+  {min:0,label:'RECRUTA',color:'#3d6a8a'},
+  {min:xpForLevel(11),label:'GUERREIRO',color:'var(--c-fisico)'},
+  {min:xpForLevel(21),label:'EXPLORADOR',color:'#44ccaa'},
+  {min:xpForLevel(31),label:'ESPECIALISTA',color:'var(--c-profissional)'},
+  {min:xpForLevel(41),label:'CAMPEÃO',color:'#66bbff'},
+  {min:xpForLevel(51),label:'ELITE',color:'var(--c-pessoal)'},
+  {min:xpForLevel(61),label:'MESTRE',color:'#aa88ff'},
+  {min:xpForLevel(71),label:'ÉPICO',color:'#ff99cc'},
+  {min:xpForLevel(81),label:'ASCENDIDO',color:'#ffcc55'},
+  {min:xpForLevel(91),label:'LENDA',color:'var(--c-financeiro)'},
+  {min:xpForLevel(100),label:'LIFE MASTER',color:'#ffffff'},
+];
+
+// ══════════════════════════════════════════
+// 100 ACHIEVEMENTS
+// ══════════════════════════════════════════
+const ACH=[
+  // FÍSICO (20)
+  {id:'f01',pilar:'fisico',tipo:'xp',th:50,icon:'🏃',name:'Primeiro Passo',desc:'50 XP físico',rar:'Comum'},
+  {id:'f02',pilar:'fisico',tipo:'xp',th:200,icon:'💪',name:'Aquecimento',desc:'200 XP físico',rar:'Comum'},
+  {id:'f03',pilar:'fisico',tipo:'xp',th:500,icon:'🏋️',name:'Na Academia',desc:'500 XP físico',rar:'Incomum'},
+  {id:'f04',pilar:'fisico',tipo:'xp',th:1200,icon:'⚡',name:'Atleta',desc:'1.200 XP físico',rar:'Incomum'},
+  {id:'f05',pilar:'fisico',tipo:'xp',th:2500,icon:'🥊',name:'Guerreiro do Corpo',desc:'2.500 XP físico',rar:'Raro'},
+  {id:'f06',pilar:'fisico',tipo:'xp',th:5000,icon:'🏆',name:'Atleta de Elite',desc:'5.000 XP físico',rar:'Raro'},
+  {id:'f07',pilar:'fisico',tipo:'xp',th:10000,icon:'🔱',name:'Mestre do Físico',desc:'10.000 XP físico',rar:'Épico'},
+  {id:'f08',pilar:'fisico',tipo:'xp',th:20000,icon:'⚜️',name:'Corpo Imortal',desc:'20.000 XP físico',rar:'Épico'},
+  {id:'f09',pilar:'fisico',tipo:'xp',th:35000,icon:'🌟',name:'Físico Divino',desc:'35.000 XP físico',rar:'Lendário'},
+  {id:'f10',pilar:'fisico',tipo:'xp',th:50000,icon:'💎',name:'Transcendência Física',desc:'50.000 XP físico',rar:'Lendário'},
+  {id:'f11',pilar:'fisico',tipo:'streak_p',th:3,icon:'🔥',name:'Chama Acesa',desc:'3 dias físico seguidos',rar:'Comum'},
+  {id:'f12',pilar:'fisico',tipo:'streak_p',th:7,icon:'💥',name:'Semana Guerreira',desc:'7 dias físico seguidos',rar:'Incomum'},
+  {id:'f13',pilar:'fisico',tipo:'streak_p',th:14,icon:'⚡',name:'Quinzena de Ferro',desc:'14 dias seguidos',rar:'Raro'},
+  {id:'f14',pilar:'fisico',tipo:'streak_p',th:30,icon:'🏅',name:'Mês Imparável',desc:'30 dias físico seguidos',rar:'Épico'},
+  {id:'f15',pilar:'fisico',tipo:'streak_p',th:60,icon:'👑',name:'60 Dias Sem Parar',desc:'60 dias físico seguidos',rar:'Lendário'},
+  {id:'f16',pilar:'fisico',tipo:'acoes_p',th:10,icon:'📋',name:'Rotina Iniciada',desc:'10 ações físicas',rar:'Comum'},
+  {id:'f17',pilar:'fisico',tipo:'acoes_p',th:50,icon:'📌',name:'Hábito Formado',desc:'50 ações físicas',rar:'Incomum'},
+  {id:'f18',pilar:'fisico',tipo:'acoes_p',th:150,icon:'🎯',name:'Atleta Consistente',desc:'150 ações físicas',rar:'Raro'},
+  {id:'f19',pilar:'fisico',tipo:'acoes_p',th:300,icon:'🔱',name:'Veterano do Treino',desc:'300 ações físicas',rar:'Épico'},
+  {id:'f20',pilar:'fisico',tipo:'acoes_p',th:500,icon:'💎',name:'Lenda das Pesas',desc:'500 ações físicas',rar:'Lendário'},
+  // FINANCEIRO (20)
+  {id:'i01',pilar:'financeiro',tipo:'xp',th:50,icon:'💵',name:'Primeiro Real',desc:'50 XP financeiro',rar:'Comum'},
+  {id:'i02',pilar:'financeiro',tipo:'xp',th:200,icon:'💴',name:'Poupador',desc:'200 XP financeiro',rar:'Comum'},
+  {id:'i03',pilar:'financeiro',tipo:'xp',th:600,icon:'📈',name:'Investidor Iniciante',desc:'600 XP financeiro',rar:'Incomum'},
+  {id:'i04',pilar:'financeiro',tipo:'xp',th:1500,icon:'📊',name:'Analista',desc:'1.500 XP financeiro',rar:'Incomum'},
+  {id:'i05',pilar:'financeiro',tipo:'xp',th:3000,icon:'🏦',name:'Gestor de Patrimônio',desc:'3.000 XP financeiro',rar:'Raro'},
+  {id:'i06',pilar:'financeiro',tipo:'xp',th:6000,icon:'💹',name:'Trader',desc:'6.000 XP financeiro',rar:'Raro'},
+  {id:'i07',pilar:'financeiro',tipo:'xp',th:12000,icon:'🔱',name:'Mestre das Finanças',desc:'12.000 XP financeiro',rar:'Épico'},
+  {id:'i08',pilar:'financeiro',tipo:'xp',th:25000,icon:'⚜️',name:'Milionário Mindset',desc:'25.000 XP financeiro',rar:'Épico'},
+  {id:'i09',pilar:'financeiro',tipo:'xp',th:40000,icon:'👑',name:'Liberdade Financeira',desc:'40.000 XP financeiro',rar:'Lendário'},
+  {id:'i10',pilar:'financeiro',tipo:'xp',th:60000,icon:'💎',name:'Império Financeiro',desc:'60.000 XP financeiro',rar:'Lendário'},
+  {id:'i11',pilar:'financeiro',tipo:'acoes_p',th:5,icon:'📅',name:'Controle Semanal',desc:'5 ações financeiras',rar:'Comum'},
+  {id:'i12',pilar:'financeiro',tipo:'acoes_p',th:20,icon:'📑',name:'Disciplina Financeira',desc:'20 ações financeiras',rar:'Incomum'},
+  {id:'i13',pilar:'financeiro',tipo:'acoes_p',th:60,icon:'🗂️',name:'Gestor Habitual',desc:'60 ações financeiras',rar:'Raro'},
+  {id:'i14',pilar:'financeiro',tipo:'acoes_p',th:150,icon:'📁',name:'CFO de Si Mesmo',desc:'150 ações financeiras',rar:'Épico'},
+  {id:'i15',pilar:'financeiro',tipo:'acoes_p',th:300,icon:'🏛️',name:'Oracle Financeiro',desc:'300 ações financeiras',rar:'Lendário'},
+  {id:'i16',pilar:'financeiro',tipo:'streak_p',th:5,icon:'📆',name:'Semana Financeira',desc:'5 dias fin. seguidos',rar:'Comum'},
+  {id:'i17',pilar:'financeiro',tipo:'streak_p',th:14,icon:'📉',name:'Quinzena Gerida',desc:'14 dias fin. seguidos',rar:'Incomum'},
+  {id:'i18',pilar:'financeiro',tipo:'streak_p',th:21,icon:'📈',name:'Três Semanas Focado',desc:'21 dias fin. seguidos',rar:'Raro'},
+  {id:'i19',pilar:'financeiro',tipo:'streak_p',th:30,icon:'💰',name:'Mês de Ouro',desc:'30 dias fin. seguidos',rar:'Épico'},
+  {id:'i20',pilar:'financeiro',tipo:'streak_p',th:60,icon:'💎',name:'Dois Meses Riqueza',desc:'60 dias fin. seguidos',rar:'Lendário'},
+  // PESSOAL (10)
+  {id:'p01',pilar:'pessoal',tipo:'xp',th:100,icon:'📖',name:'Curioso',desc:'100 XP pessoal',rar:'Comum'},
+  {id:'p02',pilar:'pessoal',tipo:'xp',th:400,icon:'🧘',name:'Autoconhecimento',desc:'400 XP pessoal',rar:'Incomum'},
+  {id:'p03',pilar:'pessoal',tipo:'xp',th:1000,icon:'🌱',name:'Crescimento',desc:'1.000 XP pessoal',rar:'Raro'},
+  {id:'p04',pilar:'pessoal',tipo:'xp',th:3000,icon:'🌟',name:'Iluminado',desc:'3.000 XP pessoal',rar:'Épico'},
+  {id:'p05',pilar:'pessoal',tipo:'xp',th:8000,icon:'💫',name:'Sábio Interior',desc:'8.000 XP pessoal',rar:'Lendário'},
+  {id:'p06',pilar:'pessoal',tipo:'acoes_p',th:15,icon:'📚',name:'Leitor Habitual',desc:'15 ações pessoais',rar:'Comum'},
+  {id:'p07',pilar:'pessoal',tipo:'acoes_p',th:60,icon:'🔍',name:'Buscador',desc:'60 ações pessoais',rar:'Incomum'},
+  {id:'p08',pilar:'pessoal',tipo:'acoes_p',th:150,icon:'🎯',name:'Focado em Si',desc:'150 ações pessoais',rar:'Raro'},
+  {id:'p09',pilar:'pessoal',tipo:'acoes_p',th:300,icon:'🧠',name:'Mente Expandida',desc:'300 ações pessoais',rar:'Épico'},
+  {id:'p10',pilar:'pessoal',tipo:'acoes_p',th:500,icon:'💎',name:'Mestre Interior',desc:'500 ações pessoais',rar:'Lendário'},
+  // PROFISSIONAL (10)
+  {id:'r01',pilar:'profissional',tipo:'xp',th:100,icon:'📚',name:'Aprendiz',desc:'100 XP profissional',rar:'Comum'},
+  {id:'r02',pilar:'profissional',tipo:'xp',th:500,icon:'🎓',name:'Graduado',desc:'500 XP profissional',rar:'Incomum'},
+  {id:'r03',pilar:'profissional',tipo:'xp',th:1500,icon:'💼',name:'Profissional',desc:'1.500 XP profissional',rar:'Raro'},
+  {id:'r04',pilar:'profissional',tipo:'xp',th:4000,icon:'🏆',name:'Sênior',desc:'4.000 XP profissional',rar:'Épico'},
+  {id:'r05',pilar:'profissional',tipo:'xp',th:10000,icon:'💎',name:'Especialista Máster',desc:'10.000 XP profissional',rar:'Lendário'},
+  {id:'r06',pilar:'profissional',tipo:'acoes_p',th:20,icon:'📋',name:'Executor',desc:'20 ações profissionais',rar:'Comum'},
+  {id:'r07',pilar:'profissional',tipo:'acoes_p',th:80,icon:'📌',name:'Dedicado',desc:'80 ações profissionais',rar:'Incomum'},
+  {id:'r08',pilar:'profissional',tipo:'acoes_p',th:200,icon:'🎯',name:'Consistente',desc:'200 ações profissionais',rar:'Raro'},
+  {id:'r09',pilar:'profissional',tipo:'acoes_p',th:400,icon:'🔱',name:'Expert',desc:'400 ações profissionais',rar:'Épico'},
+  {id:'r10',pilar:'profissional',tipo:'acoes_p',th:600,icon:'💎',name:'Autoridade',desc:'600 ações profissionais',rar:'Lendário'},
+  // RELACIONAMENTOS (5)
+  {id:'l01',pilar:'relacionamentos',tipo:'xp',th:100,icon:'🤝',name:'Sociável',desc:'100 XP relações',rar:'Comum'},
+  {id:'l02',pilar:'relacionamentos',tipo:'xp',th:400,icon:'❤️',name:'Confiável',desc:'400 XP relações',rar:'Incomum'},
+  {id:'l03',pilar:'relacionamentos',tipo:'xp',th:1000,icon:'💞',name:'Presente',desc:'1.000 XP relações',rar:'Raro'},
+  {id:'l04',pilar:'relacionamentos',tipo:'xp',th:3000,icon:'👑',name:'Pilar da Família',desc:'3.000 XP relações',rar:'Épico'},
+  {id:'l05',pilar:'relacionamentos',tipo:'xp',th:7000,icon:'💎',name:'Líder Amado',desc:'7.000 XP relações',rar:'Lendário'},
+  // XP TOTAL (10)
+  {id:'t01',pilar:null,tipo:'total',th:500,icon:'⚡',name:'Decolagem',desc:'500 XP total',rar:'Comum'},
+  {id:'t02',pilar:null,tipo:'total',th:2000,icon:'🔥',name:'Em Chamas',desc:'2.000 XP total',rar:'Comum'},
+  {id:'t03',pilar:null,tipo:'total',th:5000,icon:'💥',name:'Explosão',desc:'5.000 XP total',rar:'Incomum'},
+  {id:'t04',pilar:null,tipo:'total',th:10000,icon:'🌊',name:'Tsunami',desc:'10.000 XP total',rar:'Incomum'},
+  {id:'t05',pilar:null,tipo:'total',th:20000,icon:'⚜️',name:'Força Bruta',desc:'20.000 XP total',rar:'Raro'},
+  {id:'t06',pilar:null,tipo:'total',th:40000,icon:'🔱',name:'Poder Absoluto',desc:'40.000 XP total',rar:'Raro'},
+  {id:'t07',pilar:null,tipo:'total',th:70000,icon:'🌟',name:'Supernova',desc:'70.000 XP total',rar:'Épico'},
+  {id:'t08',pilar:null,tipo:'total',th:100000,icon:'🌌',name:'Galáxia',desc:'100.000 XP total',rar:'Épico'},
+  {id:'t09',pilar:null,tipo:'total',th:160000,icon:'♾️',name:'Infinito',desc:'160.000 XP total',rar:'Lendário'},
+  {id:'t10',pilar:null,tipo:'total',th:250000,icon:'💎',name:'LIFE MASTER XP',desc:'250.000 XP total',rar:'Lendário'},
+  // STREAK (10)
+  {id:'s01',pilar:'streak',tipo:'streak',th:3,icon:'📅',name:'3 Dias',desc:'3 dias seguidos',rar:'Comum'},
+  {id:'s02',pilar:'streak',tipo:'streak',th:7,icon:'📆',name:'Semana Perfeita',desc:'7 dias seguidos',rar:'Comum'},
+  {id:'s03',pilar:'streak',tipo:'streak',th:14,icon:'🗓️',name:'Quinzena',desc:'14 dias seguidos',rar:'Incomum'},
+  {id:'s04',pilar:'streak',tipo:'streak',th:21,icon:'🔁',name:'3 Semanas',desc:'21 dias seguidos',rar:'Incomum'},
+  {id:'s05',pilar:'streak',tipo:'streak',th:30,icon:'🏅',name:'Mês Completo',desc:'30 dias seguidos',rar:'Raro'},
+  {id:'s06',pilar:'streak',tipo:'streak',th:45,icon:'⭐',name:'45 Dias',desc:'45 dias seguidos',rar:'Raro'},
+  {id:'s07',pilar:'streak',tipo:'streak',th:60,icon:'🌟',name:'2 Meses',desc:'60 dias seguidos',rar:'Épico'},
+  {id:'s08',pilar:'streak',tipo:'streak',th:90,icon:'💫',name:'3 Meses de Fogo',desc:'90 dias seguidos',rar:'Épico'},
+  {id:'s09',pilar:'streak',tipo:'streak',th:180,icon:'☀️',name:'6 Meses de Chama',desc:'180 dias seguidos',rar:'Lendário'},
+  {id:'s10',pilar:'streak',tipo:'streak',th:365,icon:'🔱',name:'Um Ano Imparável',desc:'365 dias seguidos',rar:'Lendário'},
+  // ESPECIAIS (15)
+  {id:'e01',pilar:null,tipo:'nivel',th:10,icon:'🎮',name:'Nível 10',desc:'Alcançar nível 10',rar:'Comum'},
+  {id:'e02',pilar:null,tipo:'nivel',th:25,icon:'🎯',name:'Nível 25',desc:'Alcançar nível 25',rar:'Incomum'},
+  {id:'e03',pilar:null,tipo:'nivel',th:50,icon:'⭐',name:'Nível 50',desc:'Alcançar nível 50',rar:'Raro'},
+  {id:'e04',pilar:null,tipo:'nivel',th:75,icon:'🌟',name:'Nível 75',desc:'Alcançar nível 75',rar:'Épico'},
+  {id:'e05',pilar:null,tipo:'nivel',th:100,icon:'💎',name:'NÍVEL 100',desc:'Alcançar o nível máximo!',rar:'Lendário'},
+  {id:'e06',pilar:null,tipo:'acoes_t',th:100,icon:'✅',name:'Centenário',desc:'100 ações no total',rar:'Comum'},
+  {id:'e07',pilar:null,tipo:'acoes_t',th:500,icon:'🎖️',name:'500 Ações',desc:'500 ações no total',rar:'Incomum'},
+  {id:'e08',pilar:null,tipo:'acoes_t',th:1000,icon:'🏆',name:'Mil Ações',desc:'1.000 ações no total',rar:'Raro'},
+  {id:'e09',pilar:null,tipo:'acoes_t',th:2000,icon:'🔱',name:'2000 Ações',desc:'2.000 ações no total',rar:'Épico'},
+  {id:'e10',pilar:null,tipo:'acoes_t',th:5000,icon:'💎',name:'5000 Ações',desc:'5.000 ações no total',rar:'Lendário'},
+  {id:'e11',pilar:null,tipo:'xp_dia',th:300,icon:'💥',name:'Dia Intenso',desc:'300+ XP em um dia',rar:'Incomum'},
+  {id:'e12',pilar:null,tipo:'xp_dia',th:500,icon:'⚡',name:'Dia Explosivo',desc:'500+ XP em um dia',rar:'Raro'},
+  {id:'e13',pilar:null,tipo:'xp_dia',th:1000,icon:'🌟',name:'Mil em Um Dia',desc:'1.000+ XP em um dia',rar:'Épico'},
+  {id:'e14',pilar:null,tipo:'balance',th:0.5,icon:'⚖️',name:'Equilibrista',desc:'Todos os pilares ativos',rar:'Raro'},
+  {id:'e15',pilar:null,tipo:'balance',th:0.8,icon:'🌐',name:'Ser Completo',desc:'Pilares equilibrados (80%)',rar:'Lendário'},
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let S={
+  pilares:{fisico:0,financeiro:0,pessoal:0,profissional:0,relacionamentos:0},
+  acoes:[],todayLog:{},history:{},
+  pilarAcoes:{fisico:0,financeiro:0,pessoal:0,profissional:0,relacionamentos:0},
+  totalAcoes:0,unlocked:{},
+  calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),
+};
+function save(){try{localStorage.setItem('liferpg_m',JSON.stringify(S));}catch(e){}}
+function load(){try{const d=localStorage.getItem('liferpg_m');if(d){const p=JSON.parse(d);S={...S,...p};if(!S.pilarAcoes)S.pilarAcoes={fisico:0,financeiro:0,pessoal:0,profissional:0,relacionamentos:0};if(!S.totalAcoes)S.totalAcoes=0;if(!S.unlocked)S.unlocked={};}}catch(e){}}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function todayKey(){const d=new Date();return`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
+function totalXP(){return Object.values(S.pilares).reduce((a,b)=>a+b,0);}
+function getRank(xp){let r=RANKS[0];for(const rk of RANKS)if(xp>=rk.min)r=rk;return r;}
+function getStreak(){let s=0;const t=new Date();for(let i=0;i<730;i++){const d=new Date(t);d.setDate(d.getDate()-i);const k=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;if(S.history[k]&&S.history[k]>0)s++;else if(i>0)break;}return s;}
+function getPStreak(pilar){let s=0;const t=new Date();for(let i=0;i<365;i++){const d=new Date(t);d.setDate(d.getDate()-i);const k=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;const log=S.todayLog[k]||{};const had=Object.keys(log).some(idx=>log[idx]&&S.acoes[idx]&&S.acoes[idx].pilar===pilar);if(had)s++;else if(i>0)break;}return s;}
+function getLast7(){const r=[];const t=new Date();const dl=['D','S','T','Q','Q','S','S'];for(let i=6;i>=0;i--){const d=new Date(t);d.setDate(d.getDate()-i);const k=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;r.push({label:dl[d.getDay()],xp:S.history[k]||0});}return r;}
+function getMonthXP(){const n=new Date();let t=0;for(const k in S.history){const[y,m]=k.split('-').map(Number);if(y===n.getFullYear()&&m===n.getMonth()+1)t+=S.history[k];}return t;}
+function getMaxDayXP(){return Math.max(...Object.values(S.history),0);}
+function calcXP(dur,pilar,manual){return manual>0?manual:Math.round((dur||20)*MULT[pilar]);}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function renderAll(){renderBanner();renderAcoes();renderPilares();renderRadar();renderWeekly();}
+
+function renderBanner(){
+  const xp=totalXP();const lvl=getLvl(xp);const rk=getRank(xp);const st=getStreak();
+  const tkey=todayKey();const done=Object.values(S.todayLog[tkey]||{}).filter(Boolean).length;
+  const curXP=xp-xpForLevel(lvl);const nxtXP=xpForLevel(Math.min(lvl+1,100))-xpForLevel(lvl);
+  const pct=lvl<100?Math.round((curXP/nxtXP)*100):100;
+  document.getElementById('lvl-n').textContent=lvl;
+  document.getElementById('lvl-title').textContent=LVL_TITLES[lvl]||'—';
+  document.getElementById('lvl-fill').style.width=pct+'%';
+  document.getElementById('lvl-xp-txt').textContent=`${curXP.toLocaleString('pt-BR')} / ${nxtXP.toLocaleString('pt-BR')} XP`;
+  document.getElementById('lvl-total-val').textContent=xp.toLocaleString('pt-BR')+' XP';
+  document.getElementById('b-hoje').textContent=`${done}/${S.acoes.length}`;
+  document.getElementById('b-streak').textContent=st+'🔥';
+  document.getElementById('b-mes').textContent=getMonthXP().toLocaleString('pt-BR');
+  document.getElementById('b-ach').textContent=`${Object.keys(S.unlocked).length}/100`;
+  document.getElementById('s-big').textContent=st;
+  const rc=document.getElementById('rank-chip');
+  rc.textContent=rk.label;rc.style.color=rk.color;rc.style.borderColor=rk.color;rc.style.background='rgba(0,0,0,.4)';
+}
+
+function renderAcoes(){
+  const tkey=todayKey();const done=S.todayLog[tkey]||{};
+  const el=document.getElementById('alist');
+  if(!S.acoes.length){el.innerHTML='<div class="empty">// Nenhuma ação cadastrada<br>Toque no <strong style="color:var(--neon)">＋</strong> para adicionar<br><br>💡 A IA classifica o pilar automaticamente</div>';return;}
+  el.innerHTML=S.acoes.map((a,i)=>{
+    const p=PILARES[a.pilar];const isDone=!!done[i];
+    return`<div class="aitem ${isDone?'done':''}">
+      <div class="a-bar" style="background:${p.color};box-shadow:0 0 5px ${p.color}"></div>
+      <div class="a-info">
+        <div class="a-nome">${a.nome}</div>
+        <div class="a-meta">${p.icon} ${p.name}${a.dur?' · '+a.dur+'min':''} · ×${MULT[a.pilar].toFixed(2)}</div>
+      </div>
+      <div class="a-pts" style="color:${p.color}">+${a.pts}</div>
+      <button class="a-check ${isDone?'done':''}" onclick="toggleAcao(${i})">${isDone?'✓':'○'}</button>
+    </div>`;
+  }).join('');
+}
+
+function renderPilares(){
+  const el=document.getElementById('pgrid');
+  el.innerHTML=Object.entries(PILARES).map(([k,p])=>{
+    const xp=S.pilares[k]||0;const lvl=getLvl(xp);
+    const cur=xp-xpForLevel(lvl);const nxt=xpForLevel(Math.min(lvl+1,100))-xpForLevel(lvl);
+    const pct=lvl<100?Math.round((cur/nxt)*100):100;
+    const m=MULT[k];const mbg=m>=1.5?'rgba(255,214,10,.12)':m>=1.3?'rgba(0,212,255,.08)':m>=1.0?'rgba(199,125,255,.08)':'rgba(255,107,53,.08)';
+    return`<div class="pcard" style="--pc:${p.color}">
+      <div class="pc-ico">${p.icon}</div><div class="pc-name">${p.name}</div>
+      <div class="pc-xp">${xp.toLocaleString('pt-BR')}</div>
+      <div class="pc-lvl">Nível ${lvl}</div>
+      <div class="mini-bar"><div class="mini-fill" style="width:${pct}%;background:${p.color};box-shadow:0 0 4px ${p.color}"></div></div>
+      <div class="mini-next">${cur}/${nxt} → lv${Math.min(lvl+1,100)}</div>
+      <div class="mult-tag" style="background:${mbg};color:${p.color}">×${m.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRadar(){
+  const el=document.getElementById('pradar');
+  el.innerHTML=Object.entries(PILARES).map(([k,p])=>{
+    const xp=S.pilares[k]||0;const pct=totalXP()>0?Math.round((xp/totalXP())*100):0;
+    return`<div class="radar-row">
+      <div class="rlbl">${p.icon} ${p.name.split(' ')[0]}</div>
+      <div class="rbar"><div class="rfill" style="width:${pct}%;background:${p.color};box-shadow:0 0 5px ${p.color}"></div></div>
+      <div class="rval" style="color:${p.color}">${xp.toLocaleString('pt-BR')}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderWeekly(){
+  const data=getLast7();const maxXP=Math.max(...data.map(d=>d.xp),1);
+  document.getElementById('wbars').innerHTML=data.map(d=>{
+    const h=Math.max(3,Math.round((d.xp/maxXP)*62));
+    return`<div class="bcol">
+      <div style="flex:1;display:flex;align-items:flex-end;width:100%"><div class="bbar" style="height:${h}px"></div></div>
+      <div class="bval">${d.xp||''}</div><div class="blbl">${d.label}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderLevelTree(){
+  const xp=totalXP();const cur=getLvl(xp);
+  const wrap=document.getElementById('ltree-wrap');
+  let html='';
+  for(let tier=0;tier<10;tier++){
+    const tc=TIER_COLORS[tier];
+    html+=`<div class="ltier-label" style="color:${tc}">${TIER_NAMES[tier].toUpperCase()} (${tier*10+1}–${tier*10+10})</div>`;
+    html+='<div class="lgrid">';
+    for(let i=0;i<10;i++){
+      const n=tier*10+i+1;const reached=xp>=xpForLevel(n);const isCur=n===cur;
+      const isMile=[10,20,30,40,50,60,70,80,90,100].includes(n);
+      html+=`<div class="lnode ${reached?'reached':''} ${isCur?'current':''} ${isMile?'mile':''}"
+        style="${isCur?'color:'+tc+';border-color:'+tc+';background:'+tc+'18;':''}${reached&&!isCur?'border-color:'+tc+'44;color:'+tc+';':''}"
+        onclick="showLvlDetail(${n})">${n}${isMile?'<div class="mile-dot"></div>':''}</div>`;
+    }
+    html+='</div>';
+  }
+  wrap.innerHTML=html;
+  // XP milestones
+  const mil=document.getElementById('xp-milestones');
+  mil.innerHTML=[10,25,50,75,100].map(n=>{
+    const needed=xpForLevel(n);const reached=xp>=needed;
+    return`<div style="background:var(--card);border:1px solid ${reached?'var(--border2)':'var(--border)'};border-radius:10px;padding:10px 12px;">
+      <div style="font-family:var(--font-game);font-size:10px;color:${reached?'var(--neon)':'var(--muted)'};letter-spacing:1px;margin-bottom:2px;">Nível ${n}</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${LVL_TITLES[n]}</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:${reached?'var(--neon2)':'var(--muted2)'};">${needed.toLocaleString('pt-BR')} XP ${reached?'✓':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function showLvlDetail(n){
+  const xp=totalXP();const needed=xpForLevel(n);const reached=xp>=needed;const cur=getLvl(xp)===n;
+  const tier=Math.ceil(n/10)-1;const tc=TIER_COLORS[tier];
+  const el=document.getElementById('lvl-detail-card');
+  el.className='lvl-detail-card show';
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:14px;">
+    <div style="font-family:var(--font-game);font-size:32px;font-weight:900;color:${reached?tc:'var(--muted)'}">${n}</div>
+    <div>
+      <div style="font-family:var(--font-game);font-size:13px;color:var(--text);letter-spacing:1.5px;">${LVL_TITLES[n]}</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:3px;">Tier ${tier+1}: ${TIER_NAMES[tier]} · ${needed.toLocaleString('pt-BR')} XP</div>
+      <div style="font-family:var(--font-mono);font-size:10px;margin-top:3px;color:${cur?'var(--neon2)':reached?'var(--neon)':'var(--muted2)'};">${cur?'← VOCÊ ESTÁ AQUI':reached?'✓ ALCANÇADO':(needed-xp).toLocaleString('pt-BR')+' XP restando'}</div>
+    </div>
+  </div>`;
+}
+
+function renderAchievements(filter='all'){
+  const el=document.getElementById('agrid');
+  let list=filter==='unlocked'?ACH.filter(a=>S.unlocked[a.id]):filter==='all'?ACH:ACH.filter(a=>a.rar===filter);
+  const rarColor={'Comum':'var(--r-comum)','Incomum':'var(--r-incomum)','Raro':'var(--r-raro)','Épico':'var(--r-epico)','Lendário':'var(--r-lendario)'};
+  el.innerHTML=list.map(a=>{
+    const on=!!S.unlocked[a.id];const rc=rarColor[a.rar];
+    const dt=on?new Date(S.unlocked[a.id]).toLocaleDateString('pt-BR'):'';
+    const rarClass=a.rar.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    return`<div class="acard ${on?'unlocked':'locked'}" style="--rc:${rc}">
+      <span class="a-ico2">${a.icon}</span>
+      <div class="a-name2">${a.name}</div>
+      <div class="a-desc2">${a.desc}</div>
+      <div class="a-rar ${rarClass}">${a.rar}</div>
+      ${on?`<div class="a-dt">${dt}</div>`:''}
+    </div>`;
+  }).join('');
+  const cnt=Object.keys(S.unlocked).length;
+  document.getElementById('ach-prog-txt').textContent=`${cnt} / 100 desbloqueadas`;
+  document.getElementById('ach-bar').style.width=cnt+'%';
+}
+
+function fAch(f,btn){
+  document.querySelectorAll('.af').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  renderAchievements(f);
+}
+
+// ══════════════════════════════════════════
+// TOGGLE / DELETE
+// ══════════════════════════════════════════
+function toggleAcao(idx){
+  const tkey=todayKey();
+  if(!S.todayLog[tkey])S.todayLog[tkey]={};
+  const a=S.acoes[idx];const isDone=S.todayLog[tkey][idx];
+  const prevLvl=getLvl(totalXP());
+  if(!isDone){
+    S.todayLog[tkey][idx]=true;
+    S.pilares[a.pilar]=(S.pilares[a.pilar]||0)+a.pts;
+    S.history[tkey]=(S.history[tkey]||0)+a.pts;
+    S.pilarAcoes[a.pilar]=(S.pilarAcoes[a.pilar]||0)+1;
+    S.totalAcoes=(S.totalAcoes||0)+1;
+    toast('✅','Ação concluída!',`+${a.pts} XP em ${PILARES[a.pilar].name}`,'');
+    const newLvl=getLvl(totalXP());
+    if(newLvl>prevLvl)setTimeout(()=>toast('🎮','LEVEL UP!',`Nível ${newLvl} — ${LVL_TITLES[newLvl]}`,'lvl'),700);
+    checkAch();
+  } else {
+    S.todayLog[tkey][idx]=false;
+    S.pilares[a.pilar]=Math.max(0,(S.pilares[a.pilar]||0)-a.pts);
+    S.history[tkey]=Math.max(0,(S.history[tkey]||0)-a.pts);
+    S.pilarAcoes[a.pilar]=Math.max(0,(S.pilarAcoes[a.pilar]||0)-1);
+    S.totalAcoes=Math.max(0,(S.totalAcoes||0)-1);
+  }
+  save();renderAll();
+}
+
+// Long press to delete on mobile
+let pressTimer=null;
+document.addEventListener('touchstart',e=>{
+  const item=e.target.closest('.aitem');if(!item)return;
+  pressTimer=setTimeout(()=>{
+    const idx=[...document.querySelectorAll('.aitem')].indexOf(item);
+    if(idx>=0&&confirm(`Remover "${S.acoes[idx].nome}"?`)){
+      const tkey=todayKey();
+      if(S.todayLog[tkey]&&S.todayLog[tkey][idx]){
+        const a=S.acoes[idx];
+        S.pilares[a.pilar]=Math.max(0,(S.pilares[a.pilar]||0)-a.pts);
+        S.history[tkey]=Math.max(0,(S.history[tkey]||0)-a.pts);
+        S.pilarAcoes[a.pilar]=Math.max(0,(S.pilarAcoes[a.pilar]||0)-1);
+        S.totalAcoes=Math.max(0,(S.totalAcoes||0)-1);
+      }
+      S.acoes.splice(idx,1);
+      const newLog={};
+      Object.keys(S.todayLog[tkey]||{}).forEach(k=>{const ki=parseInt(k);if(ki>idx)newLog[ki-1]=S.todayLog[tkey][k];else if(ki<idx)newLog[ki]=S.todayLog[tkey][k];});
+      if(S.todayLog[tkey])S.todayLog[tkey]=newLog;
+      save();renderAll();
+    }
+  },700);
+},{passive:true});
+document.addEventListener('touchend',()=>clearTimeout(pressTimer),{passive:true});
+document.addEventListener('touchmove',()=>clearTimeout(pressTimer),{passive:true});
+
+// ══════════════════════════════════════════
+// AI
+// ══════════════════════════════════════════
+const KW={
+  fisico:['musculação','academia','treino','corrida','natação','ciclismo','yoga','pilates','caminhada','futebol','basquete','esporte','exercício','cardio','crossfit','funcional','boxe','mma','ginástica','hiit','pedalar','andar','agachamento','supino'],
+  financeiro:['investimento','poupança','aportar','bolsa','ação','fundo','tesouro','dívida','planilha','orçamento','gastos','finanças','imposto','cartão','crédito','seguro','previdência','dividendos','crypto','patrimônio','renda','cdi','selic','ativo','passivo'],
+  pessoal:['leitura','livro','meditação','terapia','diário','journal','reflexão','autoconhecimento','mindfulness','gratidão','filosofia','podcast','idioma','inglês','espanhol','hábito','propósito','voluntariado','hobby','arte','criatividade'],
+  profissional:['trabalho','projeto','reunião','estudo','faculdade','pós','mba','certificação','currículo','linkedin','networking','apresentação','relatório','excel','python','código','programar','dados','análise','pesquisa','entrevista','proposta','okr'],
+  relacionamentos:['família','amigos','namorada','namorado','parceiro','parceira','pais','mãe','pai','irmão','filho','ligação','mensagem','visita','jantar','almoço','churrasco','encontro','conversa','ajudar','presente','aniversário'],
+};
+let hintTimer=null;
+function onNomeInput(){
+  clearTimeout(hintTimer);
+  const n=document.getElementById('inp-n').value.trim();
+  if(n.length<3){document.getElementById('ai-hint').classList.remove('show');updatePreview();return;}
+  hintTimer=setTimeout(()=>{classifyLocal(n);updatePreview();},350);
+}
+function classifyLocal(nome){
+  const n=nome.toLowerCase();const sc={fisico:0,financeiro:0,pessoal:0,profissional:0,relacionamentos:0};
+  for(const[p,kws]of Object.entries(KW))for(const kw of kws)if(n.includes(kw))sc[p]+=2;
+  const best=Object.entries(sc).sort((a,b)=>b[1]-a[1])[0];
+  if(best[1]>0){
+    const p=PILARES[best[0]];
+    document.getElementById('ai-hint').innerHTML=`🤖 <strong>${p.icon} ${p.name}</strong> · ×${MULT[best[0]].toFixed(2)}`;
+    document.getElementById('ai-hint').classList.add('show');
+    document.getElementById('inp-p').value=best[0];
+  }
+}
+function updatePreview(){
+  const pilar=document.getElementById('inp-p').value==='auto'?'pessoal':document.getElementById('inp-p').value;
+  const dur=parseInt(document.getElementById('inp-d').value)||0;
+  const manual=parseInt(document.getElementById('inp-x').value)||0;
+  const pts=calcXP(dur,pilar,manual);
+  const el=document.getElementById('xp-prev');
+  if(dur>0||manual>0){el.innerHTML=`⚡ +<strong>${pts} XP</strong> em ${PILARES[pilar].name}`;el.classList.add('show');}
+  else el.classList.remove('show');
+}
+async function callClaude(prompt,sys,maxT){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxT||200,system:sys,messages:[{role:'user',content:prompt}]})});
+  if(!r.ok)throw new Error('API error');
+  const d=await r.json();return d.content[0].text.trim();
+}
+async function addAcaoIA(){
+  const nome=document.getElementById('inp-n').value.trim();
+  if(!nome){toast('⚠️','Escreva o nome primeiro','','');return;}
+  const btn=document.querySelector('.btn-s');btn.textContent='🤖 Classificando...';btn.disabled=true;
+  try{
+    const txt=await callClaude(`Ação: "${nome}"`,`Classificador de ações. JSON apenas: {"pilar":"<fisico|financeiro|pessoal|profissional|relacionamentos>","duracao":<min>,"descricao":"<frase curta>"}`,150);
+    const res=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    document.getElementById('inp-p').value=res.pilar;
+    if(!document.getElementById('inp-d').value)document.getElementById('inp-d').value=res.duracao||30;
+    updatePreview();
+    const p=PILARES[res.pilar];
+    document.getElementById('ai-hint').innerHTML=`🤖 <strong>${p.icon} ${p.name}</strong> · ${res.descricao}`;
+    document.getElementById('ai-hint').classList.add('show');
+    toast('🤖','IA classificou!',`${p.icon} ${p.name} — ×${MULT[res.pilar].toFixed(2)}`,'');
+  }catch(e){classifyLocal(nome);toast('🔍','Classificação local','Usando palavras-chave','');}
+  btn.textContent='🤖 CLASSIFICAR COM IA';btn.disabled=false;
+}
+async function addAcao(){
+  const nome=document.getElementById('inp-n').value.trim();
+  if(!nome){toast('⚠️','Nome obrigatório','','');return;}
+  let pilar=document.getElementById('inp-p').value;
+  const dur=parseInt(document.getElementById('inp-d').value)||0;
+  const manual=parseInt(document.getElementById('inp-x').value)||0;
+  const rep=document.getElementById('inp-r').value;
+  if(pilar==='auto'){
+    try{
+      const txt=await callClaude(`Ação: "${nome}"`,`Classificador. JSON apenas: {"pilar":"<fisico|financeiro|pessoal|profissional|relacionamentos>"}`,80);
+      pilar=JSON.parse(txt.replace(/```json|```/g,'').trim()).pilar;
+    }catch(e){
+      const sc={fisico:0,financeiro:0,pessoal:0,profissional:0,relacionamentos:0};const n=nome.toLowerCase();
+      for(const[p,kws]of Object.entries(KW))for(const kw of kws)if(n.includes(kw))sc[p]+=2;
+      const b=Object.entries(sc).sort((a,b)=>b[1]-a[1])[0];pilar=b[1]>0?b[0]:'pessoal';
+    }
+  }
+  const pts=calcXP(dur,pilar,manual);
+  S.acoes.push({nome,pilar,dur,pts,rep});
+  ['inp-n','inp-d','inp-x'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('inp-p').value='auto';
+  document.getElementById('ai-hint').classList.remove('show');
+  document.getElementById('xp-prev').classList.remove('show');
+  save();renderAll();closeSheet();
+  toast('➕','Ação criada!',`"${nome}" · +${pts} XP`,'');
+}
+
+// ══════════════════════════════════════════
+// ACHIEVEMENTS CHECK
+// ══════════════════════════════════════════
+function checkAch(){
+  const xp=totalXP();const st=getStreak();const lvl=getLvl(xp);const maxDay=getMaxDayXP();
+  let news=[];
+  ACH.forEach(a=>{
+    if(S.unlocked[a.id])return;
+    let val=0;
+    if(a.tipo==='xp')val=S.pilares[a.pilar]||0;
+    else if(a.tipo==='total')val=xp;
+    else if(a.tipo==='streak')val=st;
+    else if(a.tipo==='streak_p')val=getPStreak(a.pilar);
+    else if(a.tipo==='acoes_p')val=S.pilarAcoes[a.pilar]||0;
+    else if(a.tipo==='acoes_t')val=S.totalAcoes||0;
+    else if(a.tipo==='nivel')val=lvl;
+    else if(a.tipo==='xp_dia')val=maxDay;
+    else if(a.tipo==='balance'){
+      const vals=Object.values(S.pilares);const avg=xp/5;
+      val=vals.every(v=>v>=avg*a.th)?1:0;
+      if(val>=1){S.unlocked[a.id]=Date.now();news.push(a);}return;
+    }
+    if(val>=a.th){S.unlocked[a.id]=Date.now();news.push(a);}
+  });
+  if(news.length){
+    const rar={'Comum':0,'Incomum':1,'Raro':2,'Épico':3,'Lendário':4};
+    news.sort((a,b)=>rar[b.rar]-rar[a.rar]);
+    const a=news[0];
+    setTimeout(()=>toast(a.icon,`${a.rar.toUpperCase()} Desbloqueado!`,a.name+' — '+a.desc,'ach'),800);
+    save();
+  }
+}
+
+// ══════════════════════════════════════════
+// CALENDAR
+// ══════════════════════════════════════════
+function renderCalendar(){
+  const months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const dw=['D','S','T','Q','Q','S','S'];
+  document.getElementById('cal-lbl').textContent=`${months[S.calMonth]} ${S.calYear}`;
+  const g=document.getElementById('cal-grid');
+  g.innerHTML=dw.map(d=>`<div class="cdh">${d}</div>`).join('');
+  const first=new Date(S.calYear,S.calMonth,1);const last=new Date(S.calYear,S.calMonth+1,0);const today=new Date();
+  for(let i=0;i<first.getDay();i++){const d=new Date(S.calYear,S.calMonth,-first.getDay()+i+1);g.innerHTML+=`<div class="cd othm">${d.getDate()}</div>`;}
+  for(let d=1;d<=last.getDate();d++){
+    const k=`${S.calYear}-${S.calMonth+1}-${d}`;const xp=S.history[k]||0;
+    const isT=today.getDate()===d&&today.getMonth()===S.calMonth&&today.getFullYear()===S.calYear;
+    const dot=xp>0?'<div class="cdots"><div class="cdot" style="background:var(--neon2)"></div></div>':'';
+    g.innerHTML+=`<div class="cd ${isT?'today':''} ${xp>0?'hasa':''}" onclick="showDay('${k}',${d})">${d}${dot}</div>`;
+  }
+}
+function showDay(k,d){
+  document.querySelectorAll('.cd').forEach(e=>e.classList.remove('sel'));
+  event&&event.currentTarget&&event.currentTarget.classList.add('sel');
+  const el=document.getElementById('ddetail');const xp=S.history[k]||0;
+  if(!xp){el.className='ddetail';return;}
+  const log=S.todayLog[k]||{};
+  const acts=Object.keys(log).filter(i=>log[i]&&S.acoes[i]).map(i=>{
+    const a=S.acoes[i];const p=PILARES[a.pilar];
+    return`<div class="dact"><div style="color:${p.color}">${p.icon}</div><div>${a.nome}</div><div style="margin-left:auto;font-family:var(--font-mono);font-size:10px;color:${p.color}">+${a.pts}</div></div>`;
+  }).join('');
+  el.className='ddetail show';
+  el.innerHTML=`<div class="ddt">// ${d}/${S.calMonth+1}/${S.calYear} — +${xp} XP</div>${acts||'<div style="color:var(--muted);font-size:11px;">Sem detalhes salvos</div>'}`;
+}
+function chMon(dir){S.calMonth+=dir;if(S.calMonth>11){S.calMonth=0;S.calYear++;}if(S.calMonth<0){S.calMonth=11;S.calYear--;}renderCalendar();}
+
+// ══════════════════════════════════════════
+// AI ANALYSIS
+// ══════════════════════════════════════════
+async function gerarAnalise(){
+  document.getElementById('analise-out').innerHTML=`<div class="ac2"><div class="aload"><div class="spin"></div><span class="pulse">Analisando seu mês...</span></div></div>`;
+  const now=new Date();const xp=totalXP();const lvl=getLvl(xp);const st=getStreak();
+  const dias=Object.keys(S.history).filter(k=>{const[y,m]=k.split('-').map(Number);return y===now.getFullYear()&&m===now.getMonth()+1&&S.history[k]>0;}).length;
+  const pilRes=Object.entries(S.pilares).map(([k,v])=>`${PILARES[k].name}:${v}XP(×${MULT[k]})`).join(',');
+  const pilarF=Object.entries(S.pilares).sort((a,b)=>b[1]-a[1])[0];
+  const pilarFr=Object.entries(S.pilares).sort((a,b)=>a[1]-b[1])[0];
+  const prompt=`Dados: Mês:${now.toLocaleString('pt-BR',{month:'long',year:'numeric'})},Nível:${lvl}(${LVL_TITLES[lvl]}),XP:${xp},XPmês:${getMonthXP()},Streak:${st},DiasAtivos:${dias},Pilares:${pilRes},Forte:${pilarF?PILARES[pilarF[0]].name:'—'},Fraco:${pilarFr?PILARES[pilarFr[0]].name:'—'},Ações:${S.totalAcoes||0},Conquistas:${Object.keys(S.unlocked).length}/100. JSON: {"resumo":"<2 parágrafos>","pontos_fortes":"<1 parágrafo>","melhorias":"<1 parágrafo>","reflexao":"<1 parágrafo filosófico>","proximos_passos":"<3 ações numeradas>"} Sem markdown.`;
+  try{
+    const txt=await callClaude(prompt,'Coach de vida pessoal. JSON apenas. Seja específico com os dados reais, motivador e honesto.',1200);
+    const p=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    const fmt=t=>`<div class="atxt">${t.split('\n').filter(l=>l.trim()).map(l=>`<p>${l}</p>`).join('')}</div>`;
+    document.getElementById('analise-out').innerHTML=`
+      <div class="ac2" style="border-color:rgba(199,125,255,.2)"><div class="ac2-lbl"><span class="ai-bdg">AI</span> Resumo do mês</div>${fmt(p.resumo)}</div>
+      <div class="ac2"><div class="ac2-lbl">✅ Pontos fortes</div>${fmt(p.pontos_fortes)}</div>
+      <div class="ac2"><div class="ac2-lbl">⚡ Melhorar</div>${fmt(p.melhorias)}</div>
+      <div class="ac2" style="border-color:rgba(199,125,255,.15)"><div class="ac2-lbl"><span class="ai-bdg">REFLEXÃO</span></div>${fmt(p.reflexao)}</div>
+      <div class="ac2" style="border-color:rgba(0,255,136,.15)"><div class="ac2-lbl">🎯 Próximos passos</div>${fmt(p.proximos_passos)}</div>
+      <div style="height:10px;"></div>`;
+  }catch(e){
+    document.getElementById('analise-out').innerHTML=`<div class="ac2"><div style="color:var(--neon3);font-family:var(--font-mono);font-size:11px;">// Erro: ${e.message}</div></div>`;
+  }
+}
+
+// ══════════════════════════════════════════
+// SHEET
+// ══════════════════════════════════════════
+function openSheet(){
+  document.getElementById('sheet').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('inp-n').focus(),350);
+}
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+// Close sheet on swipe down
+let sheetStartY=0;
+document.getElementById('sheet').addEventListener('touchstart',e=>{sheetStartY=e.touches[0].clientY;},{passive:true});
+document.getElementById('sheet').addEventListener('touchmove',e=>{
+  const dy=e.touches[0].clientY-sheetStartY;
+  if(dy>60)closeSheet();
+},{passive:true});
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let toastT;
+function toast(icon,title,body,type){
+  clearTimeout(toastT);
+  document.getElementById('t-i').textContent=icon;document.getElementById('t-t').textContent=title;document.getElementById('t-b').textContent=body;
+  const el=document.getElementById('toast');el.className='toast show'+(type?' '+type:'');
+  toastT=setTimeout(()=>{el.className='toast';},4000);
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+let activeView='hoje';
+function sw(name,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.getElementById('bnav-'+name)&&document.getElementById('bnav-'+name).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('content').scrollTop=0;
+  activeView=name;
+  if(name==='pilares'){renderPilares();renderRadar();renderWeekly();}
+  if(name==='niveis')renderLevelTree();
+  if(name==='agenda')renderCalendar();
+  if(name==='conquistas')renderAchievements();
+}
+
+// Extra nav for hidden tabs (níveis & agenda)
+// Add long-press on pilares to go to niveis
+document.getElementById('bnav-pilares').addEventListener('click',function(){
+  if(activeView==='pilares'){sw('niveis',this);}else{sw('pilares',this);}
+});
+
+// ══════════════════════════════════════════
+// PWA INSTALL
+// ══════════════════════════════════════════
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('install-wrap').innerHTML=`
+    <div class="install-banner">
+      <div class="install-txt"><strong>INSTALAR APP</strong><br>Adicione à tela inicial para usar offline</div>
+      <button class="install-btn" onclick="installApp()">Instalar</button>
+      <button class="install-close" onclick="this.closest('.install-banner').remove()">×</button>
+    </div>`;
+});
+async function installApp(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  const r=await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById('install-wrap').innerHTML='';
+  if(r.outcome==='accepted')toast('📱','App instalado!','Acesse pela tela inicial','');
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+load();
+if(!S.acoes.length){
+  S.acoes=[
+    {nome:'Musculação',pilar:'fisico',dur:60,pts:84,rep:'diario'},
+    {nome:'Estudar ciência de dados',pilar:'profissional',dur:45,pts:54,rep:'diario'},
+    {nome:'Revisar investimentos',pilar:'financeiro',dur:20,pts:32,rep:'semanal'},
+    {nome:'Leitura 30min',pilar:'pessoal',dur:30,pts:30,rep:'diario'},
+    {nome:'Ligar pra família',pilar:'relacionamentos',dur:20,pts:14,rep:'semanal'},
+  ];save();
+}
+renderAll();
+</script>
+</body>
+</html>
